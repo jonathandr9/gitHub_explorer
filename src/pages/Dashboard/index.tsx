@@ -1,63 +1,70 @@
-import React from 'react';
+import React, {useState, FormEvent} from 'react';
 import {FiChevronRight} from 'react-icons/fi';
 
+import api from '../../services/api';
 import logoImg from '../../assets/logo.svg';
 import {Title, Form, Repositories} from './styles';
 
+interface Repository{
+    full_name: string;
+    description: string;
+    owner:{
+        login: string;
+        avatar_url: string;
+    }
+}
+
 const Dashboard: React.FC = () =>{
+
+    const [newRepo, setNewRepo] = useState('');
+    const [repositories, setRepositories] = useState<Repository[]>([]);
+
+    async function handleAddRepository(event: FormEvent<HTMLFormElement>): Promise<void>{
+        
+        event.preventDefault();
+
+        const response = await api.get<Repository>(`repos/${newRepo}`);
+
+        const repository = response.data;        
+
+        setRepositories([... repositories, repository]);
+        setNewRepo('');
+    }
 
     return (
         <>
             <img src={logoImg} alt = "GitHub Explorer"/>
             <Title>Explore repositórios no Git Hub</Title>
 
-            <Form >
-                <input placeholder = "Digite o nome do repositório"></input>
+            <Form onSubmit={handleAddRepository}>
+                <input 
+                    placeholder = "Digite o nome do repositório"
+                    value={newRepo}
+                    onChange={e => setNewRepo(e.target.value)}
+                />                    
+                
                 <button type="submit">Pesquisar</button>
             </Form>
 
             <Repositories>
-                <a href="teste">
-                    <img 
-                        src="https://avatars2.githubusercontent.com/u/27286681?s=460&u=38ad292ee57a401ec11033cb9529d43c706d4b32&v=4"
-                        alt="Jonathan Rodrigues"
-                    />
 
-                    <div>
-                        <strong>jonathandr9/AppWeather</strong>
-                        <p>React Native application, for real-time climate research.</p>
-                    </div>
+                {repositories.map(repository => (
 
-                    <FiChevronRight size={20}/>
-                </a>
+                        <a key={repository.full_name} href="teste">
+                            <img 
+                                src={repository.owner.avatar_url}
+                                alt={repository.owner.login}
+                            />
 
-                <a href="teste">
-                    <img 
-                        src="https://avatars2.githubusercontent.com/u/27286681?s=460&u=38ad292ee57a401ec11033cb9529d43c706d4b32&v=4"
-                        alt="Jonathan Rodrigues"
-                    />
+                            <div>
+                                <strong>{repository.full_name}</strong>
+                                <p>{repository.description}</p>
+                            </div>
 
-                    <div>
-                        <strong>jonathandr9/AppWeather</strong>
-                        <p>React Native application, for real-time climate research.</p>
-                    </div>
-
-                    <FiChevronRight size={20}/>
-                </a>
-
-                <a href="teste">
-                    <img 
-                        src="https://avatars2.githubusercontent.com/u/27286681?s=460&u=38ad292ee57a401ec11033cb9529d43c706d4b32&v=4"
-                        alt="Jonathan Rodrigues"
-                    />
-
-                    <div>
-                        <strong>jonathandr9/AppWeather</strong>
-                        <p>React Native application, for real-time climate research.</p>
-                    </div>
-
-                    <FiChevronRight size={20}/>
-                </a>
+                            <FiChevronRight size={20}/>
+                        </a>    
+                ))}
+                      
             </Repositories>
         </>
     );
